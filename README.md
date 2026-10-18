@@ -62,7 +62,7 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/python -m pytest -q
 ```
 
-## Getting the real numbers
+## Reproducing the benchmarks
 
 Use a CUDA GPU (a free Google Colab T4 works). It's much faster than a laptop,
 and `bench_memory.py` only measures exact peak memory on CUDA. On an 8 GB M3
@@ -91,29 +91,41 @@ Try images yourself:
 .venv/bin/python sample.py "a large yellow triangle at the top" --sampler dpmsolver --steps 20
 ```
 
-## Smoke-test results so far (M3, 8 GB, not final)
+## Results
 
-- Analytic Gaussian test (`PYTHONPATH=. python tests/test_samplers.py`): the
-  target std is 0.500. DDPM gets 0.486 at 100 steps and 0.431 at 20.
-  DDIM gets 0.467 at 20. DPM-Solver++ gets 0.503 at 20 and 0.480 at 10.
-- Memory under a 2 GB budget on MPS (approximate): the largest batch is 32 in
-  FP32 and 40 in FP16, so FP16 fits **25%** more. FP16 was not faster on MPS.
-  Re-measure on CUDA.
-- Wall-clock speedup from 100 → 20 steps was 3.4–3.9× on a 30-step smoke model,
-  not the ideal 5×, because of fixed per-batch overhead. Report the measured
-  figure.
+### Verified (deterministic, reproducible with the command shown)
 
-## Resume bullets: fill in from your own `results.md`
+**Sampler accuracy on an analytic Gaussian** (`PYTHONPATH=. python tests/test_samplers.py`).
+The data distribution is N(0.3, 0.5²), so the ideal noise prediction is known in
+closed form. Each sampler's output std is compared against the true 0.500.
+This checks the solvers' math, not image quality.
 
-Only use numbers you measured, and keep the files that produced them.
+| Sampler | Steps | Output std | Error vs 0.500 |
+|---|---|---|---|
+| DDPM | 100 | 0.486 | 2.8% |
+| DDPM | 20 | 0.431 | 13.8% |
+| DDIM | 20 | 0.467 | 6.6% |
+| DPM-Solver++(2M) | 20 | 0.503 | 0.6% |
+| DPM-Solver++(2M) | 10 | 0.480 | 4.0% |
 
-> • Built a pixel-space text-to-image diffusion model from scratch in PyTorch (transformer text encoder, cross-attention UNet, classifier-free guidance).
->
-> • Accelerated inference throughput by **[speedup − 1]%** by implementing DDIM and DPM-Solver++ samplers, cutting the reverse process from 100 to **[N]** steps with **[no measurable loss in fidelity: FD X vs Y, within real-data noise floor Z / prompt accuracy A% vs B%]**.
->
-> • Implemented FP16 mixed-precision training (autocast + dynamic loss scaling) and gradient accumulation, fitting a **[gain]%** larger micro-batch under a **[budget]** GB memory budget on **[GPU]**.
+**Gradient accumulation** (`pytest tests/test_training.py`): gradients from 2×
+and 4× accumulated micro-batches match the full-batch gradient to within
+float32 tolerance.
 
-On "zero loss in visual fidelity": only claim it if FD and prompt accuracy at
-20 steps are within the noise floor of the 100-step baseline. Otherwise write
-the actual numbers, e.g. "with <1 pt drop in prompt accuracy". Interviewers
-respect precise claims and will ask how you measured.
+**Evaluator** (`python train_evaluator.py`, default settings): the attribute
+classifier labels 5,000 of 5,000 held-out real images correctly (100%) on all
+four attributes. This validates the scorer used by the benchmarks. On clean
+synthetic data, perfect accuracy is expected.
+
+### Preliminary (Apple M3, 8 GB — approximate)
+
+**Memory** (`python bench_memory.py --budget-gb 2`): with a 2 GB budget, the
+largest training batch is 32 in FP32 and 40 in FP16 (+25%). MPS has no exact
+peak-memory counter, so peaks are sampled after each forward pass. FP16 was
+not faster than FP32 on this GPU. Exact numbers need a CUDA run.
+
+### Not yet run
+
+The full 20k-step training run and `bench_sampling.py` (wall-clock throughput,
+Fréchet distance and prompt accuracy per sampler) on a GPU. Results will be
+added here when that run completes.
