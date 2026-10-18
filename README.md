@@ -69,10 +69,10 @@ and `bench_memory.py` only measures exact peak memory on CUDA. On an 8 GB M3
 Mac, training runs at about 65 img/s, so a full run takes roughly 10
 hours.
 
-In Colab (Runtime → Change runtime type → T4 GPU), after pushing this repo to GitHub:
+In Colab (Runtime → Change runtime type → T4 GPU):
 
 ```
-!git clone https://github.com/<you>/text-to-image-processor.git
+!git clone https://github.com/jesskw21/text-to-image-processor.git
 %cd text-to-image-processor
 !pip install -q -r requirements.txt
 !python train.py --steps 20000 --micro-batch 128 --precision fp16
