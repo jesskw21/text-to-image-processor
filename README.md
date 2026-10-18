@@ -27,7 +27,7 @@ measured objectively.
 | `sample.py` | Prompt → image grid |
 | `tests/` | Samplers checked against an analytic Gaussian denoiser; grad-accumulation == full-batch gradient |
 
-## How it works (what to be able to explain)
+## How it works
 
 **Samplers.** All three use the same network, the same timestep grid, and
 exactly `steps` network evaluations (NFE); only the update rule changes.
