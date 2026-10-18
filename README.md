@@ -65,8 +65,8 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 ## Getting the real numbers
 
 Use a CUDA GPU (a free Google Colab T4 works). It's much faster than a laptop,
-and `bench_memory.py` only measures exact peak memory on CUDA. On an M3 MacBook
-Air with 8 GB, training runs at about 65 img/s, so a full run takes roughly 10
+and `bench_memory.py` only measures exact peak memory on CUDA. On an 8 GB M3
+Mac, training runs at about 65 img/s, so a full run takes roughly 10
 hours.
 
 In Colab (Runtime → Change runtime type → T4 GPU), after pushing this repo to GitHub:
