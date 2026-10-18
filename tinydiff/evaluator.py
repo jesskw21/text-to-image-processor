@@ -55,11 +55,10 @@ def feature_stats(feats):
 
 def frechet_distance(mu1, s1, mu2, s2):
     diff = mu1 - mu2
-    covmean = linalg.sqrtm(s1 @ s2)
-    if not np.isfinite(covmean).all():
-        eps = np.eye(s1.shape[0]) * 1e-6
-        covmean = linalg.sqrtm((s1 + eps) @ (s2 + eps))
-    covmean = covmean.real
+    # ReLU features leave some dimensions constant, so the covariances are
+    # singular; a small ridge keeps sqrtm well defined.
+    eps = np.eye(s1.shape[0]) * 1e-6
+    covmean = linalg.sqrtm((s1 + eps) @ (s2 + eps)).real
     return float(diff @ diff + np.trace(s1) + np.trace(s2) - 2 * np.trace(covmean))
 
 
