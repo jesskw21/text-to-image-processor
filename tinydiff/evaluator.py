@@ -55,7 +55,7 @@ def feature_stats(feats):
 
 def frechet_distance(mu1, s1, mu2, s2):
     diff = mu1 - mu2
-    covmean, _ = linalg.sqrtm(s1 @ s2, disp=False)
+    covmean = linalg.sqrtm(s1 @ s2)
     if not np.isfinite(covmean).all():
         eps = np.eye(s1.shape[0]) * 1e-6
         covmean = linalg.sqrtm((s1 + eps) @ (s2 + eps))
